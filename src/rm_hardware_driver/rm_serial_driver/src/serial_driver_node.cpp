@@ -133,7 +133,8 @@ void SerialDriverNode::listenLoop() {
       auto error_message = protocol_->getErrorMessage();
       error_message = error_message.empty() ? "unknown" : error_message;
       FYT_WARN("serial_driver", "Failed to reveive packet! error message :{}", error_message);
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      //时间戳宽容度，原版是50ms，过于严格，极容易导致“Something Wrong when lookUpTransform”的报错,这里改成1000ms，减少报错频率
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
   }
 }

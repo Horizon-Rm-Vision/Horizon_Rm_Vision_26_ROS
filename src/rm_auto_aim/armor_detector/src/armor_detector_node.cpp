@@ -155,7 +155,8 @@ void ArmorDetectorNode::imageCallback(
     rclcpp::Time target_time = img_msg->header.stamp;
     auto odom_to_gimbal = tf2_buffer_->lookupTransform(
         odom_frame_, img_msg->header.frame_id, target_time,
-        rclcpp::Duration::from_seconds(0.01));//放宽这个时间可以减少出现Something Wrong when lookUpTransform的频率，但是还是存在周期性掉线
+        //放宽这个时间可以减少出现Something Wrong when lookUpTransform的频率，但是还是存在周期性掉线，原来是0.01
+        rclcpp::Duration::from_seconds(0.9));
     auto msg_q = odom_to_gimbal.transform.rotation;
     tf2::Quaternion tf_q;
     tf2::fromMsg(msg_q, tf_q);

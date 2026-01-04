@@ -82,7 +82,7 @@ bool FixedPacketTool<capacity>::checkPacket(uint8_t *buffer, int recv_len) {
     return false;
   }
   // 检查帧头，帧尾,
-  if ((buffer[0] != 0xff) || (buffer[capacity - 1] != 0x0d)) {
+  if ((buffer[0] != 0xCD) || (buffer[capacity - 1] != 0xDC)) {
     return false;
   }
   // TODO(gezp): 检查check_byte(buffer[capacity-2]),可采用异或校验(BCC)

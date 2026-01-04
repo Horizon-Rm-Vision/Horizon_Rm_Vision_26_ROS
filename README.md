@@ -217,4 +217,6 @@ limitations under the License.
 - 修改了BA优化的代码，抽象出新的类ArmorPoseEstimator
 
 # Horizon_Rm_Vision_26_ROS
+REV4:将Sophus依赖由原来的模板类库改为非模板类库，修复CMakeLists和代码调用fmt部分的bug
 M1:基于REV4，引入了全相机驱动，添加了对arm64设备的支持（打符部分暂时没有做适配）,此为git管理版本的第一个版本
+M2:修改通信协议为Horizon格式，彻底修复了实体串口的周期性掉线导致卡顿的问题,重命名相机部分包名，修复部分相机坐标系异常问题
