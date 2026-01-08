@@ -1,11 +1,12 @@
 /**:
   ros__parameters:
     camera_info_url: package://rm_bringup/config/camera_info.yaml
-    exposure_time: 18000
-    gain: 10
-    resolution_width: 1280
-    resolution_height: 1024
-    offsetX: 0
-    offsetY: 0
+    exposure_time: 8000
+    analog_gain: 10
+    gamma: 100
+    rgb_gain.r: 152
+    rgb_gain.g: 125
+    rgb_gain.b: 100
     camera_name: "mv_camera"
     recording: false    #是否录制
+

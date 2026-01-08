@@ -40,12 +40,18 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex> //M3: mutex for debug overlay data
 // project
 #include "armor_detector/armor_detector.hpp"
 #include "armor_detector/armor_pose_estimator.hpp"
 #include "armor_detector/number_classifier.hpp"
 #include "rm_interfaces/msg/armors.hpp"
 #include "rm_interfaces/msg/target.hpp"
+
+//M3: 新增云台命令和串口接收数据消息头文件
+#include "rm_interfaces/msg/gimbal_cmd.hpp"
+#include "rm_interfaces/msg/serial_receive_data.hpp"
+
 #include "rm_interfaces/srv/set_mode.hpp"
 #include "rm_utils/heartbeat.hpp"
 #include "rm_utils/logger/log.hpp"
@@ -138,6 +144,29 @@ private:
   image_transport::Publisher binary_img_pub_;
   image_transport::Publisher number_img_pub_;
   image_transport::Publisher result_img_pub_;
+
+  //M3：新增debug overlay层订阅：发送/接收信息
+  rclcpp::Subscription<rm_interfaces::msg::GimbalCmd>::SharedPtr
+      gimbal_cmd_sub_armor_;
+  rclcpp::Subscription<rm_interfaces::msg::GimbalCmd>::SharedPtr
+      gimbal_cmd_sub_rune_;
+  rclcpp::Subscription<rm_interfaces::msg::SerialReceiveData>::SharedPtr
+      serial_receive_sub_;
+
+
+  //M3：新增debug overlay层数据缓存
+  rm_interfaces::msg::GimbalCmd latest_gimbal_cmd_armor_;
+  bool has_gimbal_cmd_armor_ = false;
+  rm_interfaces::msg::GimbalCmd latest_gimbal_cmd_rune_;
+  bool has_gimbal_cmd_rune_ = false;
+  rm_interfaces::msg::SerialReceiveData latest_serial_receive_;
+  bool has_serial_receive_ = false;
+  std::mutex overlay_mutex_;
+  
+    //M3：FPS tracking
+    std::chrono::steady_clock::time_point fps_last_time_;
+    int fps_frame_count_ = 0;
+    double fps_ = 0.0;
 };
 
 } // namespace fyt::auto_aim

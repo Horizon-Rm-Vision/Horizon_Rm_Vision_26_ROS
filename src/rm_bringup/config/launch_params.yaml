@@ -1,7 +1,7 @@
 # 相机选择
 camera_type: "daheng"  # 可选值: "daheng", "hik", "mv"
 odom2camera:
-  xyz: "\"0.10 0.0  0.05\""
+  xyz: "\"0.0 0.0  0.0\""
   rpy: "\"0.0  0.0  0.0\""
 
 # 设置启动参数

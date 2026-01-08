@@ -34,7 +34,7 @@
 
 namespace fyt::serial_driver {
 namespace protocol {
-typedef enum : unsigned char { Fire = 0x01, NotFire = 0x00 } FireState;
+typedef enum : unsigned char { Fire = 0x39, NotFire = 0x31 } FireState;
 
 // Protocol interface
 class Protocol {

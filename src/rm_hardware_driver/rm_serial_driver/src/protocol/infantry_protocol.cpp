@@ -33,12 +33,20 @@ ProtocolInfantry::ProtocolInfantry(std::string_view port_name, bool enable_data_
 void ProtocolInfantry::send(const rm_interfaces::msg::GimbalCmd &data) {
   FixedPacket<16> packet;
   packet.loadData<float>(static_cast<float>(data.pitch), 1);
-  packet.loadData<float>(static_cast<float>(3.14), 5);
-  packet.loadData<unsigned char>(data.fire_advice ? FireState::Fire : FireState::NotFire, 9);
+  packet.loadData<float>(-static_cast<float>(data.yaw), 5); //yaw取反,故yaw无数据是-0,在串口拆解pitch数据最后一位是80（即负号）
+  //packet.loadData<unsigned char>(data.fire_advice ? FireState::Fire : FireState::NotFire, 9);
+  if(data.distance>0)
+  {
+    packet.loadData<unsigned char>(data.fire_advice ? FireState::Fire : FireState::NotFire, 9);
+  }
+  else
+  {
+    packet.loadData<unsigned char>(0x01, 9);
+  }
   packet.loadData<float>(static_cast<float>(data.distance), 10);
   std::cout<<"distance:"<<data.distance<<std::endl;
   std::cout<<"data.pitch:"<<data.pitch<<std::endl;
-  std::cout<<"data.yaw:"<<data.yaw<<std::endl;
+  std::cout<<"data.yaw:"<<-data.yaw<<std::endl;
   packet_tool_->sendPacket(packet);
 }
 
@@ -58,7 +66,8 @@ bool ProtocolInfantry::receive(rm_interfaces::msg::SerialReceiveData &data) {
   FixedPacket<16> packet;
   if (packet_tool_->recvPacket(packet)) {
     packet.unloadData(data.pitch, 1);
-    packet.unloadData(data.yaw, 5);
+    float yaw_temp = -data.yaw;
+    packet.unloadData(yaw_temp, 5);
     packet.unloadData(data.mode, 9);
     packet.unloadData(data.roll, 10);
   std::cout<<"data.pitch:"<<data.pitch<<std::endl;
