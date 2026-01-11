@@ -28,8 +28,9 @@ find_package(TBB REQUIRED COMPONENTS tbb)
 find_package(G2O REQUIRED)
 find_package(fmt REQUIRED)
 find_package(Sophus REQUIRED)
-set(Sophus_INCLUDE_DIRS "/usr/local/sophus-livo/include")
-set(Sophus_LIBRARIES "/usr/local/sophus-livo/lib/libSophus.so")
+# set(Sophus_LIBRARIES "/usr/local/lib/libSophus.so")  #原版
+set(Sophus_INCLUDE_DIRS "/usr/local/sophus-livo/include")        #特化
+set(Sophus_LIBRARIES "/usr/local/sophus-livo/lib/libSophus.so")  #特化
 message(STATUS "Sophus libraries: ${Sophus_LIBRARIES}")
 
 
