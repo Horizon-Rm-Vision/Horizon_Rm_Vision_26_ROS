@@ -113,7 +113,7 @@ RuneSolverNode::RuneSolverNode(const rclcpp::NodeOptions &options) : Node("rune_
     "rune_solver/set_mode",
     std::bind(
       &RuneSolverNode::setModeCallback, this, std::placeholders::_1, std::placeholders::_2));
-
+  color_red_ = this->declare_parameter("color_red",true);
   // Debug info
   debug_ = this->declare_parameter("debug", true);
   if (debug_) {
@@ -357,17 +357,15 @@ void RuneSolverNode::setModeCallback(
   response->success = true;
 
   VisionMode mode = static_cast<VisionMode>(request->mode);
-  std::string mode_name = visionModeToString(mode);
+  std::string mode_name = visionModeToString(mode,color_red_);
   if (mode_name == "UNKNOWN") {
     FYT_ERROR("rune_solver", "Invalid mode: {}", request->mode);
     return;
   }
 
   switch (mode) {
-    case VisionMode::SMALL_RUNE_RED:
-    case VisionMode::SMALL_RUNE_BLUE:
-    case VisionMode::BIG_RUNE_RED:
-    case VisionMode::BIG_RUNE_BLUE: {
+    case VisionMode::SMALL_RUNE:
+    case VisionMode::BIG_RUNE:{
       enable_ = true;
       break;
     }
@@ -377,7 +375,7 @@ void RuneSolverNode::setModeCallback(
     }
   }
 
-  FYT_WARN("rune_solver", "Set Rune Mode: {}", visionModeToString(mode));
+  FYT_WARN("rune_solver", "Set Rune Mode: {}", visionModeToString(mode,color_red_));
 }
 
 }  // namespace fyt::rune

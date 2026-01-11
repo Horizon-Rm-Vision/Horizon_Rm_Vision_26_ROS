@@ -34,6 +34,7 @@ ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions &options)
   FYT_INFO("armor_solver", "Starting ArmorSolverNode!");
 
   debug_mode_ = this->declare_parameter("debug", true);
+  color_red_ = this->declare_parameter("color_red",true);
 
   // Tracker
   double max_match_distance = this->declare_parameter("tracker.max_match_distance", 0.2);
@@ -452,15 +453,14 @@ void ArmorSolverNode::setModeCallback(
   response->success = true;
 
   VisionMode mode = static_cast<VisionMode>(request->mode);
-  std::string mode_name = visionModeToString(mode);
+  std::string mode_name = visionModeToString(mode,color_red_);
   if (mode_name == "UNKNOWN") {
     FYT_ERROR("armor_solver", "Invalid mode: {}", request->mode);
     return;
   }
 
   switch (mode) {
-    case VisionMode::AUTO_AIM_RED:
-    case VisionMode::AUTO_AIM_BLUE: {
+    case VisionMode::AUTO_AIM:{
       enable_ = true;
       break;
     }
@@ -470,7 +470,7 @@ void ArmorSolverNode::setModeCallback(
     }
   }
 
-  FYT_WARN("armor_solver", "Set Mode to {}", visionModeToString(mode));
+  FYT_WARN("armor_solver", "Set Mode to {}", visionModeToString(mode,color_red_));
 }
 
 }  // namespace fyt::auto_aim

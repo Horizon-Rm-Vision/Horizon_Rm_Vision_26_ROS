@@ -63,7 +63,7 @@ private:
                        std::shared_ptr<rm_interfaces::srv::SetMode::Response> response);
   
   bool debug_mode_;
-
+  bool color_red_;
   // Heartbeat
   HeartBeatPublisher::SharedPtr heartbeat_;
 

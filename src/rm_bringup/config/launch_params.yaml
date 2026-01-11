@@ -1,5 +1,8 @@
 # 相机选择
 camera_type: "daheng"  # 可选值: "daheng", "hik", "mv"
+# 颜色选择
+light_type: "red" # "red"红色，“blue”蓝色
+
 odom2camera:
   xyz: "\"0.0 0.0  0.0\""
   rpy: "\"0.0  0.0  0.0\""

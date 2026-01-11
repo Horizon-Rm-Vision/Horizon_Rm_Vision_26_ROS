@@ -1,7 +1,8 @@
 /**:
   ros__parameters:
     debug: true
-    auto_type_determined: true 
+    color_red: true 
+    auto_type_determined: false 
     predict_time: 0.0
     compensator_type: resistance
     gravity: 9.8

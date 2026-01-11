@@ -40,28 +40,33 @@ inline std::string enemyColorToString(EnemyColor color) {
 }
 
 enum VisionMode {
-  AUTO_AIM_RED = 0,
-  AUTO_AIM_BLUE = 1,
-  SMALL_RUNE_RED = 2,
-  SMALL_RUNE_BLUE = 3,
-  BIG_RUNE_RED = 4,
-  BIG_RUNE_BLUE = 5,
+  AUTO_AIM = 1,
+  SMALL_RUNE = 2,
+  BIG_RUNE = 3,
 };
 
-inline std::string visionModeToString(VisionMode mode) {
+inline std::string visionModeToString(VisionMode mode,bool color_red) {
   switch (mode) {
-    case VisionMode::AUTO_AIM_RED:
-      return "AUTO_AIM_RED";
-    case VisionMode::AUTO_AIM_BLUE:
-      return "AUTO_AIM_BLUE";
-    case VisionMode::SMALL_RUNE_RED:
-      return "SMALL_RUNE_RED";
-    case VisionMode::SMALL_RUNE_BLUE:
-      return "SMALL_RUNE_BLUE";
-    case VisionMode::BIG_RUNE_RED:
-      return "BIG_RUNE_RED";
-    case VisionMode::BIG_RUNE_BLUE:
-      return "BIG_RUNE_BLUE";
+    case VisionMode::AUTO_AIM:
+      if(color_red){
+        return "AUTO_AIM_RED";
+      }else{
+        return "AUTO_AIM_BLUE";
+      }
+    case VisionMode::SMALL_RUNE:
+      if(color_red){
+        return "SMALL_RUNE_RED";
+      }
+      else{
+        return "SMALL_RUNE_BLUE";
+      }
+    case VisionMode::BIG_RUNE:
+      if(color_red){
+        return "BIG_RUNE_RED";
+      }
+      else{
+        return "BIG_RUNE_BLUE";
+      }
     default:
       return "UNKNOWN";
   }

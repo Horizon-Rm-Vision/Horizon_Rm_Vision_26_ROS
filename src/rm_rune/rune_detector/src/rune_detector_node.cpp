@@ -43,7 +43,8 @@ RuneDetectorNode::RuneDetectorNode(const rclcpp::NodeOptions &options)
   detect_r_tag_ = declare_parameter("detect_r_tag", true);
   binary_thresh_ = declare_parameter("min_lightness", 100);
   requests_limit_ = declare_parameter("requests_limit", 5);
-
+  
+  color_red_ = this->declare_parameter("color_red",true);
   // Detector
   rune_detector_ = initDetector();
   // Rune Publisher
@@ -272,7 +273,7 @@ void RuneDetectorNode::setModeCallback(
   response->success = true;
 
   VisionMode mode = static_cast<VisionMode>(request->mode);
-  std::string mode_name = visionModeToString(mode);
+  std::string mode_name = visionModeToString(mode,color_red_);
   if (mode_name == "UNKNOWN") {
     FYT_ERROR("rune_detector", "Invalid mode: {}", request->mode);
     return;
@@ -288,32 +289,28 @@ void RuneDetectorNode::setModeCallback(
   };
 
   switch (mode) {
-    case VisionMode::SMALL_RUNE_RED: {
+    case VisionMode::SMALL_RUNE: {
       is_rune_ = true;
       is_big_rune_ = false;
-      detect_color_ = EnemyColor::RED;
-      createImageSub();
+      if(color_red_){
+        detect_color_ = EnemyColor::RED;
+        createImageSub();
+      }else{
+        detect_color_ = EnemyColor::BLUE;
+        createImageSub();
+      }
       break;
     }
-    case VisionMode::SMALL_RUNE_BLUE: {
-      is_rune_ = true;
-      is_big_rune_ = false;
-      detect_color_ = EnemyColor::BLUE;
-      createImageSub();
-      break;
-    }
-    case VisionMode::BIG_RUNE_RED: {
+    case VisionMode::BIG_RUNE: {
       is_rune_ = true;
       is_big_rune_ = true;
-      detect_color_ = EnemyColor::RED;
-      createImageSub();
-      break;
-    }
-    case VisionMode::BIG_RUNE_BLUE: {
-      is_rune_ = true;
-      is_big_rune_ = true;
-      detect_color_ = EnemyColor::BLUE;
-      createImageSub();
+      if(color_red_){
+        detect_color_ = EnemyColor::RED;
+        createImageSub();
+      }else{
+        detect_color_ = EnemyColor::BLUE;
+        createImageSub();
+      }
       break;
     }
     default: {
@@ -324,7 +321,7 @@ void RuneDetectorNode::setModeCallback(
     }
   }
 
-  FYT_WARN("rune_detector", "Set Rune Mode: {}", visionModeToString(mode));
+  FYT_WARN("rune_detector", "Set Rune Mode: {}", visionModeToString(mode,color_red_));
 }
 
 void RuneDetectorNode::createDebugPublishers() {

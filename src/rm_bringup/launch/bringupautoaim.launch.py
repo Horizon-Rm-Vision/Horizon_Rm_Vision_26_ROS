@@ -35,49 +35,10 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{'robot_description': robot_navigation_description,}]
-                    # 'publish_frequency': 1000.0}]
     )
 
     def get_params(name):
         return os.path.join(get_package_share_directory('rm_bringup'), 'config', 'node_params', '{}_params.yaml'.format(name))
-
-    # 图像 - 修改后的相机支持部分
-    if launch_params['video_play']: 
-        image_node = ComposableNode(
-            package='rm_camera_driver',
-            plugin='fyt::camera_driver::VideoPlayerNode',
-            name='video_player',
-            parameters=[get_params('video_player')],
-            extra_arguments=[{'use_intra_process_comms': True}]
-        )
-    else:
-        # 根据camera_type选择相机驱动
-        camera_type = launch_params.get('camera_type', 'daheng')  # 默认为大恒相机
-        
-        if camera_type == 'hik':
-            image_node = ComposableNode(
-                package='hik_camera',
-                plugin='hik_camera::HikCameraNode',
-                name='camera_driver',
-                parameters=[get_params('hik_camera')],
-                extra_arguments=[{'use_intra_process_comms': True}]
-            )
-        elif camera_type == 'mv':
-            image_node = ComposableNode(
-                package='mindvision_camera',
-                plugin='mindvision_camera::MVCameraNode',
-                name='camera_driver',
-                parameters=[get_params('mindvision_camera')],
-                extra_arguments=[{'use_intra_process_comms': True}]
-            )
-        else:  # 默认使用大恒相机
-            image_node = ComposableNode(
-                package='rm_camera_driver',
-                plugin='fyt::camera_driver::DahengCameraNode',
-                name='camera_driver',
-                parameters=[get_params('camera_driver')],
-                extra_arguments=[{'use_intra_process_comms': True}]
-            )
 
     # 串口
     if launch_params['virtual_serial']:
@@ -102,8 +63,9 @@ def generate_launch_description():
         )
 
     light_type = launch_params.get('light_type', 'red')  # 默认为红色 
+    
     # 装甲板识别
-    if light_type == 'red':   
+    if light_type == 'red':    
         armor_detector_node = ComposableNode(
             package='armor_detector', 
             plugin='fyt::auto_aim::ArmorDetectorNode',
@@ -117,6 +79,14 @@ def generate_launch_description():
             plugin='fyt::auto_aim::ArmorDetectorNode',
             name='armor_detector',
             parameters=[get_params('armor_detector_B')],
+            extra_arguments=[{'use_intra_process_comms': True}]
+        )
+    else:
+        armor_detector_node = ComposableNode(
+            package='armor_detector', 
+            plugin='fyt::auto_aim::ArmorDetectorNode',
+            name='armor_detector',
+            parameters=[get_params('armor_detector_R')],  # 默认使用红色参数
             extra_arguments=[{'use_intra_process_comms': True}]
         )
     
@@ -152,49 +122,76 @@ def generate_launch_description():
                 parameters=[get_params('armor_solver_B')],
                 ros_arguments=[],
             )
+        else:
+            armor_solver_node = Node(
+                package='armor_solver',
+                executable='armor_solver_node',
+                name='armor_solver',
+                output='both',
+                emulate_tty=True,
+                parameters=[get_params('armor_solver_R')],  # 默认使用红色参数
+                ros_arguments=[],
+            )
 
     # 打符
-    if light_type == 'red':
-        rune_detector_node = ComposableNode(    
-            package='rune_detector',
-            plugin='fyt::rune::RuneDetectorNode',
-            name='rune_detector',
-            parameters=[get_params('rune_detector_R')],
-            extra_arguments=[{'use_intra_process_comms': True}]
-            )
-        rune_solver_node = Node(
-            package='rune_solver',
-            executable='rune_solver_node',
-            name='rune_solver',
-            output='both',
-            emulate_tty=True,
-            parameters=[get_params('rune_solver_R')],
-            arguments=['--ros-args',], 
-            )
-    elif light_type == 'blue':
-        rune_detector_node = ComposableNode(    
-            package='rune_detector',
-            plugin='fyt::rune::RuneDetectorNode',
-            name='rune_detector',
-            parameters=[get_params('rune_detector_B')],
-            extra_arguments=[{'use_intra_process_comms': True}]
-            )
-        rune_solver_node = Node(
-            package='rune_solver',
-            executable='rune_solver_node',
-            name='rune_solver',
-            output='both',
-            emulate_tty=True,
-            parameters=[get_params('rune_solver_B')],
-            arguments=['--ros-args',], 
-            ) 
+    if launch_params['rune']:
+        if light_type == 'red':
+            rune_detector_node = ComposableNode(    
+                package='rune_detector',
+                plugin='fyt::rune::RuneDetectorNode',
+                name='rune_detector',
+                parameters=[get_params('rune_detector_R')],
+                extra_arguments=[{'use_intra_process_comms': True}]
+                )
+            rune_solver_node = Node(
+                package='rune_solver',
+                executable='rune_solver_node',
+                name='rune_solver',
+                output='both',
+                emulate_tty=True,
+                parameters=[get_params('rune_solver_R')],
+                arguments=['--ros-args',], 
+                )
+        elif light_type == 'blue':
+            rune_detector_node = ComposableNode(    
+                package='rune_detector',
+                plugin='fyt::rune::RuneDetectorNode',
+                name='rune_detector',
+                parameters=[get_params('rune_detector_B')],
+                extra_arguments=[{'use_intra_process_comms': True}]
+                )
+            rune_solver_node = Node(
+                package='rune_solver',
+                executable='rune_solver_node',
+                name='rune_solver',
+                output='both',
+                emulate_tty=True,
+                parameters=[get_params('rune_solver_B')],
+                arguments=['--ros-args',], 
+                )
+        else:
+            rune_detector_node = ComposableNode(    
+                package='rune_detector',
+                plugin='fyt::rune::RuneDetectorNode',
+                name='rune_detector',
+                parameters=[get_params('rune_detector_R')],  # 默认使用红色参数
+                extra_arguments=[{'use_intra_process_comms': True}]
+                )
+            rune_solver_node = Node(
+                package='rune_solver',
+                executable='rune_solver_node',
+                name='rune_solver',
+                output='both',
+                emulate_tty=True,
+                parameters=[get_params('rune_solver_R')],  # 默认使用红色参数
+                arguments=['--ros-args',], 
+                )
 
-    # 使用intra cmmunication提高图像的传输速度
-    def get_camera_detector_container(*detector_nodes):
+    # 修改容器创建函数 - 不再包含相机节点
+    def get_detector_container(*detector_nodes):
         nodes_list = list(detector_nodes)
-        nodes_list.append(image_node)
         container = ComposableNodeContainer(
-            name='camera_detector_container',
+            name='detector_container',
             namespace='',
             package='rclcpp_components',
             executable='component_container_mt',
@@ -219,31 +216,33 @@ def generate_launch_description():
         actions=[armor_solver_node],
     )
     
-    delay_rune_solver_node = TimerAction(
-        period=2.0,
-        actions=[rune_solver_node],
-    )
-    
+    # 创建检测器容器
     if launch_params['rune']:
-        cam_detector_node = get_camera_detector_container(armor_detector_node, rune_detector_node)
+        detector_node = get_detector_container(armor_detector_node, rune_detector_node)
+        delay_rune_solver_node = TimerAction(
+            period=2.0,
+            actions=[rune_solver_node],
+        )
     else:
-        cam_detector_node = get_camera_detector_container(armor_detector_node)
+        detector_node = get_detector_container(armor_detector_node)
+        delay_rune_solver_node = None
 
-    delay_cam_detector_node = TimerAction(
+    delay_detector_node = TimerAction(
         period=2.0,
-        actions=[cam_detector_node],
-        ) 
+        actions=[detector_node],
+    ) 
     
     push_namespace = PushRosNamespace(launch_params['namespace'])
     
+    # 构建启动列表
     launch_description_list = [
         robot_gimbal_publisher,
         push_namespace,
         delay_serial_node,
-        delay_cam_detector_node,
+        delay_detector_node,
         delay_armor_solver_node]
     
-    if launch_params['rune']:
+    if launch_params['rune'] and delay_rune_solver_node:
         launch_description_list.append(delay_rune_solver_node)
     
     if launch_params['navigation']:

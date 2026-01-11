@@ -102,6 +102,7 @@ ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions &options)
   marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
       "armor_detector/marker", 10);
 
+  color_red_ = this->declare_parameter("color_red",true);
   // Debug Publishers
   debug_ = this->declare_parameter("debug", true);
   //M3: 初始化FPS计数
@@ -548,7 +549,7 @@ void ArmorDetectorNode::setModeCallback(
   response->message = "0";
 
   VisionMode mode = static_cast<VisionMode>(request->mode);
-  std::string mode_name = visionModeToString(mode);
+  std::string mode_name = visionModeToString(mode,color_red_);
   if (mode_name == "UNKNOWN") {
     FYT_ERROR("armor_detector", "Invalid mode: {}", request->mode);
     return;
@@ -563,15 +564,15 @@ void ArmorDetectorNode::setModeCallback(
     }
   };
 
-  switch (mode) {
-  case VisionMode::AUTO_AIM_RED: {
-    detector_->detect_color = EnemyColor::RED;
-    createImageSub();
-    break;
-  }
-  case VisionMode::AUTO_AIM_BLUE: {
-    detector_->detect_color = EnemyColor::BLUE;
-    createImageSub();
+ switch (mode) {
+  case VisionMode::AUTO_AIM: {
+    if(color_red_){
+      detector_->detect_color = EnemyColor::RED;
+      createImageSub();
+    }else{
+      detector_->detect_color = EnemyColor::BLUE;
+      createImageSub();
+    }
     break;
   }
   default: {

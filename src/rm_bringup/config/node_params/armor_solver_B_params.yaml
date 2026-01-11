@@ -1,7 +1,8 @@
 /**:
   ros__parameters:
     debug: true
-    target_frame: odom
+    color_red: false #识别蓝色    
+    target_frame: odom1
     max_armor_distance: 10.0
 
     ekf:

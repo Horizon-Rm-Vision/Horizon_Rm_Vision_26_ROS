@@ -63,6 +63,7 @@ private:
   // Rune solver
   std::unique_ptr<RuneSolver> rune_solver_;
   double predict_offset_;
+  bool color_red_;
 
   // Tf message
   std::shared_ptr<tf2_ros::Buffer> tf2_buffer_;

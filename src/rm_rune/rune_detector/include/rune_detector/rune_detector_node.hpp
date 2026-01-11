@@ -79,6 +79,7 @@ private:
   int requests_limit_;
   std::queue<std::future<bool>> detect_requests_;
   std::unique_ptr<RuneDetector> rune_detector_;
+  bool color_red_;
 
   // Rune params
   EnemyColor detect_color_;

@@ -1,6 +1,7 @@
 /**:
   ros__parameters:
     debug: true
+    color_red: false #识别蓝色
     requests_limit: 5 
     detect_r_tag: true # 是否使用传统方法识别R标
     min_lightness: 100 # 二值化亮度阈值 (R标识别)
