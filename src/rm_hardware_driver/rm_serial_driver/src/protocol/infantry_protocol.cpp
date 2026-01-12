@@ -45,8 +45,9 @@ void ProtocolInfantry::send(const rm_interfaces::msg::GimbalCmd &data) {
   }
   packet.loadData<float>(static_cast<float>(data.distance), 10);
   std::cout<<"distance:"<<data.distance<<std::endl;
-  std::cout<<"data.pitch:"<<data.pitch<<std::endl;
-  std::cout<<"data.yaw:"<<-data.yaw<<std::endl;
+  std::cout<<"send.pitch:"<<data.pitch<<std::endl;
+  std::cout<<"send.yaw:"<<-data.yaw<<std::endl;
+  std::cout<<"send.fire:"<<data.fire_advice<<std::endl;
   packet_tool_->sendPacket(packet);
 }
 
@@ -70,7 +71,10 @@ bool ProtocolInfantry::receive(rm_interfaces::msg::SerialReceiveData &data) {
     packet.unloadData(yaw_temp, 5);
     packet.unloadData(data.mode, 9);
     packet.unloadData(data.roll, 10);
-  std::cout<<"data.pitch:"<<data.pitch<<std::endl;
+    std::cout<<"receive.pitch:"<<data.pitch<<std::endl;
+    std::cout<<"receive.yaw:"<<yaw_temp<<std::endl;
+    std::cout<<"receive.roll:"<<data.roll<<std::endl;
+    std::cout<<"receive.mode:"<<data.mode<<std::endl;
     return true;
   } else {
     return false;

@@ -95,6 +95,9 @@ private:
 
   // Armor Detector
   std::unique_ptr<Detector> detector_;
+  
+  // Enemy color
+  bool color_red_;
 
   // Pose Solver
   bool use_ba_;

@@ -29,6 +29,9 @@ find_package(G2O REQUIRED)
 find_package(fmt REQUIRED)
 find_package(Sophus REQUIRED)
 set(Sophus_LIBRARIES "/usr/local/lib/libSophus.so")
+# 部分安装了多个版本sophus的设备需要手动制定sophus位置
+# set(Sophus_INCLUDE_DIRS "/usr/local/sophus-livo/include")
+# set(Sophus_LIBRARIES "/usr/local/sophus-livo/lib/libSophus.so")
 message(STATUS "Sophus libraries: ${Sophus_LIBRARIES}")
 
 
