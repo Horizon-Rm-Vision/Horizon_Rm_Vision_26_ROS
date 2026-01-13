@@ -207,7 +207,7 @@ Eigen::Matrix4d RuneSolver::solvePose(const rm_interfaces::msg::RuneTarget &pred
       ps.pose.position.z = tvec.at<double>(2);
 
       // Transform to odom
-      ps = tf2_buffer_->transform(ps, "odom");
+      ps = tf2_buffer_->transform(ps, "odom1");
 
       // Fill pose
       pose(0, 3) = ps.pose.position.x;
@@ -238,7 +238,7 @@ rm_interfaces::msg::GimbalCmd RuneSolver::solveGimbalCmd(const Eigen::Vector3d &
   // Get current yaw and pitch of gimbal
   double current_yaw = 0.0, current_pitch = 0.0;
   try {
-    auto gimbal_tf = tf2_buffer_->lookupTransform("odom", "gimbal_link", tf2::TimePointZero);
+    auto gimbal_tf = tf2_buffer_->lookupTransform("odom1", "gimbal_link1", tf2::TimePointZero);
     auto msg_q = gimbal_tf.transform.rotation;
 
     tf2::Quaternion tf_q;

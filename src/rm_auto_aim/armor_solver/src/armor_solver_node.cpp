@@ -41,6 +41,12 @@ ArmorSolverNode::ArmorSolverNode(const rclcpp::NodeOptions &options)
   tracker_ = std::make_unique<Tracker>(max_match_distance, max_match_yaw_diff);
   tracker_->tracking_thres = this->declare_parameter("tracker.tracking_thres", 5);
   lost_time_thres_ = this->declare_parameter("tracker.lost_time_thres", 0.3);
+  // Outpost height offsets (high, mid, low) relative to center z (meters)
+  std::vector<double> outpost_offsets = this->declare_parameter<std::vector<double>>("tracker.outpost_z_offsets",
+                                                                                      std::vector<double>{0.10, 0.0, -0.10});
+  if (outpost_offsets.size() == 3) {
+    tracker_->outpost_z_offsets_ = {outpost_offsets[0], outpost_offsets[1], outpost_offsets[2]};
+  }
 
   // EKF
   // xa = x_armor, xc = x_robot_center
@@ -390,7 +396,13 @@ void ArmorSolverNode::publishMarkers(const rm_interfaces::msg::Target &target_ms
         is_current_pair = !is_current_pair;
       } else {
         r = r1;
-        p_a.z = zc;
+        if (target_msg.id == "outpost") {
+          // Use per-armor z offsets for outpost
+          size_t idx = i % tracker_->outpost_z_offsets_.size();
+          p_a.z = zc + tracker_->outpost_z_offsets_[idx];
+        } else {
+          p_a.z = zc;
+        }
       }
       p_a.x = xc - r * cos(tmp_yaw);
       p_a.y = yc - r * sin(tmp_yaw);
@@ -411,7 +423,7 @@ void ArmorSolverNode::publishMarkers(const rm_interfaces::msg::Target &target_ms
 
     trajectory_marker_.action = visualization_msgs::msg::Marker::ADD;
     trajectory_marker_.points.clear();
-    trajectory_marker_.header.frame_id = "gimbal_link";
+    trajectory_marker_.header.frame_id = "gimbal_link1";
     for (const auto &point : solver_->getTrajectory()) {
       geometry_msgs::msg::Point p;
       p.x = point.first;

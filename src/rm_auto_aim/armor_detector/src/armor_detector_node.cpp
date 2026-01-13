@@ -39,10 +39,6 @@
 #include <image_transport/image_transport.hpp>
 #include <rclcpp/qos.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-
-//M3: 新增点消息头文件
-#include <geometry_msgs/msg/point_stamped.hpp>
-
 // third party
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -74,7 +70,7 @@ ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions &options)
       "armor_detector/armors", rclcpp::SensorDataQoS());
 
   // Transform initialize
-  odom_frame_ = this->declare_parameter("target_frame", "odom");
+  odom_frame_ = this->declare_parameter("target_frame", "odom1");
   imu_to_camera_ = Eigen::Matrix3d::Identity();
 
   // Visualization Marker Publisher
@@ -104,8 +100,6 @@ ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions &options)
 
   // Debug Publishers
   debug_ = this->declare_parameter("debug", true);
-  //M3: 初始化FPS计数
-  fps_last_time_ = std::chrono::steady_clock::now();
   if (debug_) {
     createDebugPublishers();
   }
@@ -133,7 +127,7 @@ ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions &options)
       "image_raw", rclcpp::SensorDataQoS(),
       std::bind(&ArmorDetectorNode::imageCallback, this,
                 std::placeholders::_1));
-
+  
   // target_sub_ = this->create_subscription<rm_interfaces::msg::Target>(
   //   "armor_solver/target",
   //   rclcpp::SensorDataQoS(),
@@ -146,11 +140,15 @@ ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions &options)
   tf2_buffer_->setCreateTimerInterface(timer_interface);
   tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
 
-  set_mode_srv_ = this->create_service<rm_interfaces::srv::SetMode>(
-      "armor_detector/set_mode",
+  mode_sub= this->create_subscription<pb_rm_interfaces::msg::JudgeData>(
+      "referee/judge_data",10,
       std::bind(&ArmorDetectorNode::setModeCallback, this,
-                std::placeholders::_1, std::placeholders::_2));
-
+                std::placeholders::_1));
+  FYT_WARN("armor_detector","hhhhhh");
+    // mode_sub= this->create_subscription<rm_interfaces::msg::JudgeData::mode>(
+    //   "mode",10,
+    //   std::bind(&ArmorDetectorNode::setModeCallback, this,
+    //             std::placeholders::_1));
   heartbeat_ = HeartBeatPublisher::create(this);
 }
 
@@ -161,8 +159,7 @@ void ArmorDetectorNode::imageCallback(
     rclcpp::Time target_time = img_msg->header.stamp;
     auto odom_to_gimbal = tf2_buffer_->lookupTransform(
         odom_frame_, img_msg->header.frame_id, target_time,
-        //放宽这个时间可以减少出现Something Wrong when lookUpTransform的频率，但是还是存在周期性掉线，原来是0.01
-        rclcpp::Duration::from_seconds(0.9));
+        rclcpp::Duration::from_seconds(0.01));//放宽这个时间可以减少出现Something Wrong when lookUpTransform的频率，但是还是存在周期性掉线
     auto msg_q = odom_to_gimbal.transform.rotation;
     tf2::Quaternion tf_q;
     tf2::fromMsg(msg_q, tf_q);
@@ -329,99 +326,6 @@ std::vector<Armor> ArmorDetectorNode::detectArmors(
     auto latency_s = latency_ss.str();
     cv::putText(img, latency_s, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX,
                 1.0, cv::Scalar(0, 255, 0), 2);
-
-    //M3: 绘制FPS
-    {
-      std::lock_guard<std::mutex> lock(overlay_mutex_);
-      fps_frame_count_++;
-      auto now = std::chrono::steady_clock::now();
-      double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - fps_last_time_).count();
-      if (elapsed >= 1.0) {
-        fps_ = static_cast<double>(fps_frame_count_) / elapsed;
-        fps_frame_count_ = 0;
-        fps_last_time_ = now;
-      }
-      std::stringstream fps_ss;
-      fps_ss << "FPS: " << std::fixed << std::setprecision(1) << fps_;
-      cv::putText(img, fps_ss.str(), cv::Point(img.cols - 150, 30), cv::FONT_HERSHEY_SIMPLEX,
-                  1.0, cv::Scalar(0, 255, 0), 2);
-    }
-
-    //UI绘制收发信息
-    {
-      std::lock_guard<std::mutex> lock(overlay_mutex_);
-      int base_y = 60;
-      int dy = 22;
-      // Armor solver GimbalCmd
-      if (has_gimbal_cmd_armor_) {
-        std::stringstream ss;
-        ss << "SEND(armor): yaw:" << std::fixed << std::setprecision(2)
-           << latest_gimbal_cmd_armor_.yaw << " pitch:" << latest_gimbal_cmd_armor_.pitch
-           << " fire:" << (latest_gimbal_cmd_armor_.fire_advice ? "1" : "0")
-           << " dist:" << latest_gimbal_cmd_armor_.distance;
-        cv::putText(img, ss.str(), cv::Point(10, base_y), cv::FONT_HERSHEY_SIMPLEX,
-                    0.6, cv::Scalar(0, 255, 255), 2);
-        base_y += dy;
-      }
-      // Rune solver GimbalCmd
-      if (has_gimbal_cmd_rune_) {
-        std::stringstream ss;
-        ss << "SEND(rune): yaw:" << std::fixed << std::setprecision(2)
-           << latest_gimbal_cmd_rune_.yaw << " pitch:" << latest_gimbal_cmd_rune_.pitch
-           << " fire:" << (latest_gimbal_cmd_rune_.fire_advice ? "1" : "0")
-           << " dist:" << latest_gimbal_cmd_rune_.distance;
-        cv::putText(img, ss.str(), cv::Point(10, base_y), cv::FONT_HERSHEY_SIMPLEX,
-                    0.6, cv::Scalar(0, 255, 255), 2);
-        base_y += dy;
-      }
-      // 串口ReceiveData
-      if (has_serial_receive_) {
-        std::stringstream ss;
-        ss << "RECV: yaw:" << std::fixed << std::setprecision(2)
-           << latest_serial_receive_.yaw << " pitch:" << latest_serial_receive_.pitch
-           << " mode:" << static_cast<int>(latest_serial_receive_.mode)
-           << " b_spd:" << latest_serial_receive_.bullet_speed;
-        cv::putText(img, ss.str(), cv::Point(10, base_y), cv::FONT_HERSHEY_SIMPLEX,
-                    0.6, cv::Scalar(0, 200, 200), 2);
-        base_y += dy;
-      }
-      //M3: 绘制来自最新装甲解算器云台的预测点
-      if (has_gimbal_cmd_armor_ && cam_info_) {
-        //M3：新增预测点绘制
-        // x = d * cos(yaw), y = d * sin(yaw), z = d * sin(pitch)
-        double dist = latest_gimbal_cmd_armor_.distance;
-        double yaw_rad = latest_gimbal_cmd_armor_.yaw * M_PI / 180.0;
-        double pitch_rad = latest_gimbal_cmd_armor_.pitch * M_PI / 180.0;
-        geometry_msgs::msg::PointStamped p_g;
-        p_g.header.frame_id = "gimbal_link";
-        p_g.header.stamp = img_msg->header.stamp;
-        p_g.point.x = dist * std::cos(yaw_rad);
-        p_g.point.y = dist * std::sin(yaw_rad);
-        p_g.point.z = dist * std::sin(pitch_rad);
-        try {
-          auto transform = tf2_buffer_->lookupTransform(
-              img_msg->header.frame_id, "gimbal_link", img_msg->header.stamp,
-              rclcpp::Duration::from_seconds(0.1));
-          geometry_msgs::msg::PointStamped p_cam;
-          tf2::doTransform(p_g, p_cam, transform);
-          double X = p_cam.point.x, Y = p_cam.point.y, Z = p_cam.point.z;
-          if (Z > 0.0001) {
-            double fx = cam_info_->k[0];
-            double fy = cam_info_->k[4];
-            double cx = cam_info_->k[2];
-            double cy = cam_info_->k[5];
-            int u = static_cast<int>(fx * X / Z + cx);
-            int v = static_cast<int>(fy * Y / Z + cy);
-            if (u >= 0 && v >= 0 && u < img.cols && v < img.rows) {
-              cv::circle(img, cv::Point(u, v), 6, cv::Scalar(0, 0, 255), 2);
-            }
-          }
-        } catch (const std::exception &e) {
-          // ignore transform errors
-        }
-      }
-    }
-    
     result_img_pub_.publish(
         cv_bridge::CvImage(img_msg->header, "rgb8", img).toImageMsg());
   }
@@ -488,29 +392,6 @@ void ArmorDetectorNode::createDebugPublishers() noexcept {
       image_transport::create_publisher(this, "armor_detector/number_img");
   result_img_pub_ =
       image_transport::create_publisher(this, "armor_detector/result_img");
-
-  //M3: 订阅装甲解算器和打符解算器的云台命令，以及串口接收数据
-  gimbal_cmd_sub_armor_ = this->create_subscription<rm_interfaces::msg::GimbalCmd>(
-      "armor_solver/cmd_gimbal", rclcpp::SensorDataQoS(),
-      [this](const rm_interfaces::msg::GimbalCmd::SharedPtr msg) {
-        std::lock_guard<std::mutex> lock(overlay_mutex_);
-        latest_gimbal_cmd_armor_ = *msg;
-        has_gimbal_cmd_armor_ = true;
-      });
-  gimbal_cmd_sub_rune_ = this->create_subscription<rm_interfaces::msg::GimbalCmd>(
-      "rune_solver/cmd_gimbal", rclcpp::SensorDataQoS(),
-      [this](const rm_interfaces::msg::GimbalCmd::SharedPtr msg) {
-        std::lock_guard<std::mutex> lock(overlay_mutex_);
-        latest_gimbal_cmd_rune_ = *msg;
-        has_gimbal_cmd_rune_ = true;
-      });
-  serial_receive_sub_ = this->create_subscription<rm_interfaces::msg::SerialReceiveData>(
-      "serial/receive", rclcpp::SensorDataQoS(),
-      [this](const rm_interfaces::msg::SerialReceiveData::SharedPtr msg) {
-        std::lock_guard<std::mutex> lock(overlay_mutex_);
-        latest_serial_receive_ = *msg;
-        has_serial_receive_ = true;
-      });
 }
 
 void ArmorDetectorNode::destroyDebugPublishers() noexcept {
@@ -520,17 +401,6 @@ void ArmorDetectorNode::destroyDebugPublishers() noexcept {
   binary_img_pub_.shutdown();
   number_img_pub_.shutdown();
   result_img_pub_.shutdown();
-
-  //M3: 注销装甲解算器和打符解算器的云台命令订阅、串口接收数据订阅
-  gimbal_cmd_sub_armor_.reset();
-  gimbal_cmd_sub_rune_.reset();
-  serial_receive_sub_.reset();
-  {
-    std::lock_guard<std::mutex> lock(overlay_mutex_);
-    has_gimbal_cmd_armor_ = false;
-    has_gimbal_cmd_rune_ = false;
-    has_serial_receive_ = false;
-  }
 }
 
 void ArmorDetectorNode::publishMarkers() noexcept {
@@ -542,44 +412,54 @@ void ArmorDetectorNode::publishMarkers() noexcept {
 }
 
 void ArmorDetectorNode::setModeCallback(
-    const std::shared_ptr<rm_interfaces::srv::SetMode::Request> request,
-    std::shared_ptr<rm_interfaces::srv::SetMode::Response> response) {
-  response->success = true;
-  response->message = "0";
-
-  VisionMode mode = static_cast<VisionMode>(request->mode);
-  std::string mode_name = visionModeToString(mode);
-  if (mode_name == "UNKNOWN") {
-    FYT_ERROR("armor_detector", "Invalid mode: {}", request->mode);
+    const std::shared_ptr<pb_rm_interfaces::msg::JudgeData> msg) {
+  // response->success = true;
+  // response->message = "0";
+  // if(!msg)std::cout<<"没消息";
+  // std::cout<<"梅消息";
+  if(initmode){
     return;
-  }
-
-  auto createImageSub = [this]() {
+  }else{
+    initmode = true;
+    if(lastmode != msg->mode){
+      initmode = false;
+      lastmode = msg->mode;
+    
+    VisionMode mode = static_cast<VisionMode>(msg->mode);
+    std::string mode_name = visionModeToString(mode);
+    if (mode_name == "UNKNOWN") {
+      FYT_ERROR("armor_detector", "Invalid mode: {}", msg->mode);
+      return;
+    }
+  
+    auto createImageSub = [this]() {
     if (img_sub_ == nullptr) {
       img_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-          "image_raw", rclcpp::SensorDataQoS(),
-          std::bind(&ArmorDetectorNode::imageCallback, this,
-                    std::placeholders::_1));
+        "image_raw", rclcpp::SensorDataQoS(),
+        std::bind(&ArmorDetectorNode::imageCallback, this,
+          std::placeholders::_1));
+        }
+      };
+    
+    switch (mode) {
+      case VisionMode::AUTO_AIM_RED: {
+        detector_->detect_color = EnemyColor::RED;
+        createImageSub();
+        break;
+      }
+      case VisionMode::AUTO_AIM_BLUE: {
+        detector_->detect_color = EnemyColor::BLUE;
+        createImageSub();
+        break;
+      }
+      default: {
+        img_sub_.reset();
+      }
     }
-  };
 
-  switch (mode) {
-  case VisionMode::AUTO_AIM_RED: {
-    detector_->detect_color = EnemyColor::RED;
-    createImageSub();
-    break;
-  }
-  case VisionMode::AUTO_AIM_BLUE: {
-    detector_->detect_color = EnemyColor::BLUE;
-    createImageSub();
-    break;
-  }
-  default: {
-    img_sub_.reset();
+    FYT_WARN("armor_detector", "Set mode to {}", mode_name);
   }
   }
-
-  FYT_WARN("armor_detector", "Set mode to {}", mode_name);
 }
 
 } // namespace fyt::auto_aim

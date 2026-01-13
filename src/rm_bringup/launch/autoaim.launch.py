@@ -274,27 +274,27 @@ def generate_launch_description():
                 extra_arguments=[{'use_intra_process_comms': True}]
             )
 
-    # 串口
-    if launch_params['virtual_serial']:
-        serial_driver_node = Node(
-            package='rm_serial_driver',
-            executable='virtual_serial_node',
-            name='virtual_serial',
-            output='both',
-            emulate_tty=True,
-            parameters=[get_params('virtual_serial')],
-            ros_arguments=['--ros-args', '-p', 'has_rune:=true' if launch_params['rune'] else 'has_rune:=false'],
-        )
-    else:
-        serial_driver_node = Node(
-            package='rm_serial_driver',
-            executable='rm_serial_driver_node',
-            name='serial_driver',
-            output='both',
-            emulate_tty=True,
-            parameters=[get_params('serial_driver')],
-            ros_arguments=['--ros-args', ],
-        )
+    # # 串口
+    # if launch_params['virtual_serial']:
+    #     serial_driver_node = Node(
+    #         package='rm_serial_driver',
+    #         executable='virtual_serial_node',
+    #         name='virtual_serial',
+    #         output='both',
+    #         emulate_tty=True,
+    #         parameters=[get_params('virtual_serial')],
+    #         ros_arguments=['--ros-args', '-p', 'has_rune:=true' if launch_params['rune'] else 'has_rune:=false'],
+    #     )
+    # else:
+    #     serial_driver_node = Node(
+    #         package='rm_serial_driver',
+    #         executable='rm_serial_driver_node',
+    #         name='serial_driver',
+    #         output='both',
+    #         emulate_tty=True,
+    #         parameters=[get_params('serial_driver')],
+    #         ros_arguments=['--ros-args', ],
+    #     )
         
     # 装甲板识别
     armor_detector_node = ComposableNode(
@@ -365,10 +365,10 @@ def generate_launch_description():
         )
 
     # 延迟启动
-    delay_serial_node = TimerAction(
-        period=1.5,
-        actions=[serial_driver_node],
-    )
+    # delay_serial_node = TimerAction(
+    #     period=1.5,
+    #     actions=[serial_driver_node],
+    # )
 
     delay_armor_solver_node = TimerAction(
         period=2.0,
@@ -395,7 +395,7 @@ def generate_launch_description():
     launch_description_list = [
         robot_gimbal_publisher,
         push_namespace,
-        delay_serial_node,
+        # delay_serial_node,
         delay_cam_detector_node,
         delay_armor_solver_node]
     

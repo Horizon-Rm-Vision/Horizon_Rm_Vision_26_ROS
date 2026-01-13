@@ -23,6 +23,7 @@
 // std
 #include <memory>
 #include <string>
+#include <array>
 // ros2
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
@@ -73,6 +74,8 @@ public:
 
   // To store offset relative to the reference plane
   double d_zc;
+  // Per-armor z offsets for outpost (high, mid, low), unit: meter
+  std::array<double, 3> outpost_z_offsets_;
 
 private:
   void initEKF(const Armor &a) noexcept;

@@ -1,8 +1,8 @@
 /**:
   ros__parameters:
     debug: true
-    target_frame: odom
-    detect_color: 3  # 0: 红色 1: 蓝色
+    target_frame: odom1
+    detect_color: 0
     binary_thres: 90
 
     use_pca: true # 使用PCA算法矫正灯条的角点

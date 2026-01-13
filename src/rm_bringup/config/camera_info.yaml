@@ -1,29 +1,29 @@
-# image_width: 1280
-# image_height: 1024
-# camera_name: "daheng"
-# camera_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1807.12121,    0.     ,  711.11997,
-#             0.     , 1806.46896,  562.49495,
-#             0.     ,    0.     ,    1.     ]
-# distortion_model: plumb_bob
-# distortion_coefficients:
-#   rows: 1
-#   cols: 5
-#   data: [0.0, 0.0, 0.0, 0.0, 0.0]
-# rectification_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1., 0., 0.,
-#          0., 1., 0.,
-#          0., 0., 1.]
-# projection_matrix:
-#   rows: 3
-#   cols: 4
-#   data: [1790.52356,    0.     ,  710.04861,    0.     ,
-#             0.     , 1794.3208 ,  562.32704,    0.     ,
-#             0.     ,    0.     ,    1.     ,    0.     ]
+image_width: 1280
+image_height: 1024
+camera_name: "daheng"
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1807.12121,    0.     ,  711.11997,
+            0.     , 1806.46896,  562.49495,
+            0.     ,    0.     ,    1.     ]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.0, 0.0, 0.0, 0.0, 0.0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1., 0., 0.,
+         0., 1., 0.,
+         0., 0., 1.]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1790.52356,    0.     ,  710.04861,    0.     ,
+            0.     , 1794.3208 ,  562.32704,    0.     ,
+            0.     ,    0.     ,    1.     ,    0.     ]
 
 # image_width: 1280
 # image_height: 1024
@@ -52,8 +52,8 @@
 #         0.000000, 1750.185425, 570.672600, 0.000000,
 #         0.000000, 0.000000, 1.000000, 0.000000]
 
-# image_width: 1280
-# image_height: 1024
+# image_width: 640
+# image_height: 480
 # camera_name: mv_camera
 # camera_matrix:
 #   rows: 3
@@ -72,141 +72,3 @@
 #   rows: 3
 #   cols: 4
 #   data: [912.289368, 0.000000, 345.606483, 0.000000, 0.000000, 947.336365, 280.620490, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000]
-
-# image_width: 1280
-# image_height: 1024
-# camera_name: "mv_camera"
-# camera_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1774.223036, 0.000000, 740.431218,
-#         0.000000, 1772.694834, 569.488977,
-#         0.000000, 0.000000, 1.000000]
-# distortion_model: plumb_bob
-# distortion_coefficients:
-#   rows: 1
-#   cols: 5
-#   data: [-0.134265, 0.143253, 0.002130, -0.000347, 0.000000]
-# rectification_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1.000000, 0.000000, 0.000000,
-#         0.000000, 1.000000, 0.000000,
-#         0.000000, 0.000000, 1.000000]
-# projection_matrix:
-#   rows: 3
-#   cols: 4
-#   data: [1739.616455, 0.000000, 740.206293, 0.000000,
-#         0.000000, 1750.185425, 570.672600, 0.000000,
-#         0.000000, 0.000000, 1.000000, 0.000000]
-
-# image_width: 1280
-# image_height: 1024
-# camera_name: "daheng"
-# camera_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1272.39905,    0.     ,  618.61436,
-#             0.     , 1272.1674 ,  522.77117,
-#             0.     ,    0.     ,    1.     ]
-# distortion_model: plumb_bob
-# distortion_coefficients:
-#   rows: 1
-#   cols: 5
-#   data: [-0.200319, 0.123162, -0.000723, 0.000555, 0.000000]
-# rectification_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1., 0., 0.,
-#          0., 1., 0.,
-#          0., 0., 1.]
-# projection_matrix:
-#   rows: 3
-#   cols: 4
-#   data: [1212.6554 ,    0.     ,  616.99223,    0.     ,
-#             0.     , 1231.64624,  522.39676,    0.     ,
-#             0.     ,    0.     ,    1.     ,    0.     ]
-
-# # mv_camera
-# image_width: 1280
-# image_height: 1024
-# camera_name: mv_camera
-# camera_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [2530.4449 ,    0.     ,  631.46289,
-#             0.     , 2536.11534,  513.61409,
-#             0.     ,    0.     ,    1.     ]
-# distortion_model: plumb_bob
-# distortion_coefficients:
-#   rows: 1
-#   cols: 5
-#   data: [-0.020300, 0.511809, 0.003824, -0.003003, 0.000000]
-# rectification_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1., 0., 0.,
-#          0., 1., 0.,
-#          0., 0., 1.]
-# projection_matrix:
-#   rows: 3
-#   cols: 4
-#   data: [2540.6731 ,    0.     ,  629.33985,    0.     ,
-#             0.     , 2545.55688,  514.85091,    0.     ,
-#             0.     ,    0.     ,    1.     ,    0.     ]
-
-# # hk_camera
-# image_width: 1440
-# image_height: 1080
-# camera_name: narrow_stereo
-# camera_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1783.59587,    0.     ,  726.03868,
-#             0.     , 1783.59342,  557.22206,
-#             0.     ,    0.     ,    1.     ]
-# distortion_model: plumb_bob
-# distortion_coefficients:
-#   rows: 1
-#   cols: 5
-#   data: [-0.093721, 0.207229, 0.002192, -0.000909, 0.000000]
-# rectification_matrix:
-#   rows: 3
-#   cols: 3
-#   data: [1., 0., 0.,
-#          0., 1., 0.,
-#          0., 0., 1.]
-# projection_matrix:
-#   rows: 3
-#   cols: 4
-#   data: [1766.07654,    0.     ,  724.56981,    0.     ,
-#             0.     , 1769.35449,  557.98502,    0.     ,
-#             0.     ,    0.     ,    1.     ,    0.     ]
-
-# daheng_camera
-image_width: 1280
-image_height: 1024
-camera_name: "daheng"
-camera_matrix:
-  rows: 3
-  cols: 3
-  data: [1272.39905,    0.     ,  618.61436,
-            0.     , 1272.1674 ,  522.77117,
-            0.     ,    0.     ,    1.     ]
-distortion_model: plumb_bob
-distortion_coefficients:
-  rows: 1
-  cols: 5
-  data: [-0.200319, 0.123162, -0.000723, 0.000555, 0.000000]
-rectification_matrix:
-  rows: 3
-  cols: 3
-  data: [1., 0., 0.,
-         0., 1., 0.,
-         0., 0., 1.]
-projection_matrix:
-  rows: 3
-  cols: 4
-  data: [1212.6554 ,    0.     ,  616.99223,    0.     ,
-            0.     , 1231.64624,  522.39676,    0.     ,
-            0.     ,    0.     ,    1.     ,    0.     ]

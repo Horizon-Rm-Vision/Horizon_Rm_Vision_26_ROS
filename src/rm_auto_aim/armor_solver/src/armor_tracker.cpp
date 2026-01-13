@@ -21,6 +21,7 @@
 #include <cfloat>
 #include <memory>
 #include <string>
+#include <cmath>
 // ros2
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -37,12 +38,15 @@ Tracker::Tracker(double max_match_distance, double max_match_yaw_diff)
 : tracker_state(LOST)
 , tracked_id(std::string(""))
 , measurement(Eigen::VectorXd::Zero(4))
-, target_state(Eigen::VectorXd::Zero(9))
+, target_state(Eigen::VectorXd::Zero(X_N))
 , max_match_distance_(max_match_distance)
 , max_match_yaw_diff_(max_match_yaw_diff)
 , detect_count_(0)
 , lost_count_(0)
-, last_yaw_(0) {}
+, last_yaw_(0) {
+  // Default outpost z offsets: high, mid, low (meters)
+  outpost_z_offsets_ = {0.10, 0.0, -0.10};
+}
 
 void Tracker::init(const Armors::SharedPtr &armors_msg) noexcept {
   if (armors_msg->armors.empty()) {
@@ -90,18 +94,32 @@ void Tracker::update(const Armors::SharedPtr &armors_msg) noexcept {
     auto predicted_position = getArmorPositionFromState(ekf_prediction);
     double min_position_diff = DBL_MAX;
     double yaw_diff = DBL_MAX;
+    // For outpost, we will match by horizontal distance (x,y) and consider z
+    // offset candidates separately so variable heights are supported.
+    double pred_x = ekf_prediction(0);
+    double pred_y = ekf_prediction(2);
+    double pred_zc = ekf_prediction(4);
     for (const auto &armor : armors_msg->armors) {
       // Only consider armors with the same id
       if (armor.number == tracked_id) {
         same_id_armor = armor;
         same_id_armors_count++;
         // Calculate the difference between the predicted position and the
-        // current armor position
+        // current armor position. For outpost we compare only horizontal
+        // distance (x,y) to allow different armor heights.
         auto p = armor.pose.position;
         Eigen::Vector3d position_vec(p.x, p.y, p.z);
-        double position_diff = (predicted_position - position_vec).norm();
+        double position_diff;
+        if (tracked_id == "outpost") {
+          double dx = pred_x - p.x;
+          double dy = pred_y - p.y;
+          position_diff = std::hypot(dx, dy);
+        } else {
+          position_diff = (predicted_position - position_vec).norm();
+        }
+
         if (position_diff < min_position_diff) {
-          // Find the closest armor
+          // Find the closest armor (by chosen metric)
           min_position_diff = position_diff;
           yaw_diff = abs(orientationToYaw(armor.pose.orientation) - ekf_prediction(6));
           tracked_armor = armor;
@@ -120,14 +138,32 @@ void Tracker::update(const Armors::SharedPtr &armors_msg) noexcept {
 
     // Check if the distance and yaw difference of closest armor are within the
     // threshold
-    if (min_position_diff < max_match_distance_ && yaw_diff < max_match_yaw_diff_) {
+      if (min_position_diff < max_match_distance_ && yaw_diff < max_match_yaw_diff_) {
       // Matched armor found
       matched = true;
       auto p = tracked_armor.pose.position;
       // Update EKF
       double measured_yaw = orientationToYaw(tracked_armor.pose.orientation);
-      measurement = Eigen::Vector4d(p.x, p.y, p.z, measured_yaw);
-      target_state = ekf->update(measurement);
+        // For outpost (variable heights) subtract the corresponding known
+        // offset so EKF maintains the center plane zc as state(4).
+        double meas_z = p.z;
+        if (tracked_id == "outpost") {
+          // choose the offset index that best matches predicted center
+          int best_idx = 0;
+          double best_z_diff = DBL_MAX;
+          for (size_t oi = 0; oi < outpost_z_offsets_.size(); ++oi) {
+            double expect_z = pred_zc + outpost_z_offsets_[oi];
+            double zdiff = std::abs(p.z - expect_z);
+            if (zdiff < best_z_diff) {
+              best_z_diff = zdiff;
+              best_idx = static_cast<int>(oi);
+            }
+          }
+          // subtract the selected offset to get center z measurement
+          meas_z = p.z - outpost_z_offsets_[best_idx];
+        }
+        measurement = Eigen::Vector4d(p.x, p.y, meas_z, measured_yaw);
+        target_state = ekf->update(measurement);
     } else if (same_id_armors_count == 1 && yaw_diff > max_match_yaw_diff_) {
       // Matched armor not found, but there is only one armor with the same id
       // and yaw has jumped, take this case as the target is spinning and armor

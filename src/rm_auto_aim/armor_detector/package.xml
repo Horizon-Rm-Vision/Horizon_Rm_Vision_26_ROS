@@ -27,6 +27,7 @@
   <depend>image_transport</depend>
   <depend>image_transport_plugins</depend>
   <depend>rm_interfaces</depend>
+  <depend>pb_rm_interfaces</depend>
   <depend>vision_opencv</depend>
   <depend>tf2</depend>
   <depend>eigen</depend>

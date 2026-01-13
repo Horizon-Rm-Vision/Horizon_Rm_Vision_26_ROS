@@ -25,7 +25,7 @@
 #include <tf2_ros/buffer_interface.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-
+#include "pb_rm_interfaces/msg/judge_data.hpp"
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <image_transport/image_transport.hpp>
 #include <image_transport/publisher.hpp>
@@ -40,19 +40,14 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <mutex> //M3: mutex for debug overlay data
 // project
 #include "armor_detector/armor_detector.hpp"
 #include "armor_detector/armor_pose_estimator.hpp"
 #include "armor_detector/number_classifier.hpp"
 #include "rm_interfaces/msg/armors.hpp"
 #include "rm_interfaces/msg/target.hpp"
-
-//M3: 新增云台命令和串口接收数据消息头文件
-#include "rm_interfaces/msg/gimbal_cmd.hpp"
-#include "rm_interfaces/msg/serial_receive_data.hpp"
-
-#include "rm_interfaces/srv/set_mode.hpp"
+#include "rm_interfaces/msg/judge_data.hpp"
+// #include "rm_interfaces/srv/set_mode.hpp"
 #include "rm_utils/heartbeat.hpp"
 #include "rm_utils/logger/log.hpp"
 
@@ -81,9 +76,9 @@ private:
   void publishMarkers() noexcept;
 
   void setModeCallback(
-      const std::shared_ptr<rm_interfaces::srv::SetMode::Request> request,
-      std::shared_ptr<rm_interfaces::srv::SetMode::Response> response);
-
+      const std::shared_ptr<pb_rm_interfaces::msg::JudgeData> msg);
+  bool initmode = false;
+  int lastmode = 0;
   // Dynamic Parameter
   rcl_interfaces::msg::SetParametersResult
   onSetParameters(std::vector<rclcpp::Parameter> parameters);
@@ -103,6 +98,7 @@ private:
   // Detected armors publisher
   rm_interfaces::msg::Armors armors_msg_;
   rclcpp::Publisher<rm_interfaces::msg::Armors>::SharedPtr armors_pub_;
+  rclcpp::Subscription<pb_rm_interfaces::msg::JudgeData>::SharedPtr mode_sub;
 
   // Visualization marker publisher
   visualization_msgs::msg::Marker armor_marker_;
@@ -131,7 +127,7 @@ private:
   std::shared_ptr<tf2_ros::TransformListener> tf2_listener_;
 
   // Enable/Disable Armor Detector
-  rclcpp::Service<rm_interfaces::srv::SetMode>::SharedPtr set_mode_srv_;
+//   rclcpp::Service<rm_interfaces::srv::SetMode>::SharedPtr set_mode_srv_;
 
   // Debug information
   bool debug_;
@@ -144,29 +140,6 @@ private:
   image_transport::Publisher binary_img_pub_;
   image_transport::Publisher number_img_pub_;
   image_transport::Publisher result_img_pub_;
-
-  //M3：新增debug overlay层订阅：发送/接收信息
-  rclcpp::Subscription<rm_interfaces::msg::GimbalCmd>::SharedPtr
-      gimbal_cmd_sub_armor_;
-  rclcpp::Subscription<rm_interfaces::msg::GimbalCmd>::SharedPtr
-      gimbal_cmd_sub_rune_;
-  rclcpp::Subscription<rm_interfaces::msg::SerialReceiveData>::SharedPtr
-      serial_receive_sub_;
-
-
-  //M3：新增debug overlay层数据缓存
-  rm_interfaces::msg::GimbalCmd latest_gimbal_cmd_armor_;
-  bool has_gimbal_cmd_armor_ = false;
-  rm_interfaces::msg::GimbalCmd latest_gimbal_cmd_rune_;
-  bool has_gimbal_cmd_rune_ = false;
-  rm_interfaces::msg::SerialReceiveData latest_serial_receive_;
-  bool has_serial_receive_ = false;
-  std::mutex overlay_mutex_;
-  
-    //M3：FPS tracking
-    std::chrono::steady_clock::time_point fps_last_time_;
-    int fps_frame_count_ = 0;
-    double fps_ = 0.0;
 };
 
 } // namespace fyt::auto_aim
